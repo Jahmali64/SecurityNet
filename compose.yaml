@@ -1,0 +1,6 @@
+﻿services:
+  securitynet.api:
+    image: securitynet.api
+    build:
+      context: .
+      dockerfile: SecurityNet.API/Dockerfile
