@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		compose.yaml = compose.yaml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityNet.Infrastructure", "SecurityNet.Infrastructure\SecurityNet.Infrastructure.csproj", "{43918D09-B0B0-4409-9F18-2329E7BCD801}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityNet.Domain", "SecurityNet.Domain\SecurityNet.Domain.csproj", "{065F812B-3787-48D9-A8D7-07EC4EC4F4D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,5 +21,13 @@ Global
 		{6791455B-2D20-47A3-A700-F98E7AA66399}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6791455B-2D20-47A3-A700-F98E7AA66399}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6791455B-2D20-47A3-A700-F98E7AA66399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43918D09-B0B0-4409-9F18-2329E7BCD801}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43918D09-B0B0-4409-9F18-2329E7BCD801}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43918D09-B0B0-4409-9F18-2329E7BCD801}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43918D09-B0B0-4409-9F18-2329E7BCD801}.Release|Any CPU.Build.0 = Release|Any CPU
+		{065F812B-3787-48D9-A8D7-07EC4EC4F4D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{065F812B-3787-48D9-A8D7-07EC4EC4F4D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{065F812B-3787-48D9-A8D7-07EC4EC4F4D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{065F812B-3787-48D9-A8D7-07EC4EC4F4D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
