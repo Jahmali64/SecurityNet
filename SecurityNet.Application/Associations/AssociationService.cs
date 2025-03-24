@@ -8,9 +8,9 @@ namespace SecurityNet.Application.Associations;
 public interface IAssociationService {
     Task<List<AssociationDto>> GetAssociations();
     Task<AssociationDto?> GetAssociation(int associationId);
-    Task<AssociationDto> AddAssociation(AssociationDto associationDto);
-    Task<AssociationDto> UpdateAssociation(AssociationDto associationDto);
-    Task DeleteAssociation(int associationId);
+    Task<AssociationDto> AddAssociation(CreateAssociationDto request);
+    Task<int> UpdateAssociation(int associationId, CreateAssociationDto request);
+    Task<int> DeleteAssociation(int associationId);
 }
 
 public sealed class AssociationService : IAssociationService {
@@ -44,48 +44,47 @@ public sealed class AssociationService : IAssociationService {
         }).FirstOrDefaultAsync(_cancellationToken);
     }
 
-    public async Task<AssociationDto> AddAssociation(AssociationDto associationDto) {
+    public async Task<AssociationDto> AddAssociation(CreateAssociationDto request) {
         await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
 
         Association association = new() {
-            Name = associationDto.Name,
-            Website = associationDto.Website,
-            Active = associationDto.Active,
+            Name = request.Name,
+            Website = request.Website,
+            Active = request.Active,
             Trash = false,
             CreatedAt = DateTime.Now
         };
 
         await securityNetDbContext.Associations.AddAsync(association, _cancellationToken);
         await securityNetDbContext.SaveChangesAsync(_cancellationToken);
-        associationDto.AssociationId = association.AssociationId;
 
-        return associationDto;
+        return new AssociationDto {
+            AssociationId = association.AssociationId,
+            Name = association.Name,
+            Website = association.Website,
+            Active = association.Active
+        };
     }
 
-    public async Task<AssociationDto> UpdateAssociation(AssociationDto associationDto) {
+    public async Task<int> UpdateAssociation(int associationId, CreateAssociationDto request) {
         await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
 
-        int rowsAffected = await securityNetDbContext.Associations
-            .Where(a => a.AssociationId == associationDto.AssociationId)
+        return await securityNetDbContext.Associations
+            .Where(a => a.AssociationId == associationId)
             .ExecuteUpdateAsync(setters => setters
-                .SetProperty(a => a.Name, associationDto.Name)
-                .SetProperty(a => a.Website, associationDto.Website)
-                .SetProperty(a => a.Active, associationDto.Active)
+                .SetProperty(a => a.Name, request.Name)
+                .SetProperty(a => a.Website, request.Website)
+                .SetProperty(a => a.Active, request.Active)
                 .SetProperty(a => a.UpdatedAt, DateTime.Now), _cancellationToken);
-        
-        if (rowsAffected == 0) throw new InvalidOperationException("No rows affected");
-        return associationDto;
     }
 
-    public async Task DeleteAssociation(int associationId) {
+    public async Task<int> DeleteAssociation(int associationId) {
         await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
         
-        int rowsAffected = await securityNetDbContext.Associations
+        return await securityNetDbContext.Associations
             .Where(a => a.AssociationId == associationId)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(a => a.Trash, true)
                 .SetProperty(a => a.DeletedAt, DateTime.Now), _cancellationToken);
-        
-        if (rowsAffected == 0) throw new InvalidOperationException("No rows affected");
     }
 }
