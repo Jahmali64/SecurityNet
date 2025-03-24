@@ -1,6 +1,6 @@
 @SecurityNet.API_HostAddress = http://localhost:5033
 
-GET {{SecurityNet.API_HostAddress}}/weatherforecast/
+GET {{SecurityNet.API_HostAddress}}/api/v1/Association
 Accept: application/json
 
 ###

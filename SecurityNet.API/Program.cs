@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using SecurityNet.Application;
 using SecurityNet.Infrastructure;
 
@@ -24,6 +25,7 @@ public static class Program {
         WebApplication app = builder.Build();
 
         if (app.Environment.IsDevelopment()) {
+            app.MapScalarApiReference();
             app.MapOpenApi();
             app.UseCors("DevelopmentCorsPolicy");
         }

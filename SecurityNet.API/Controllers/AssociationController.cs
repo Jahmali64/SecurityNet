@@ -5,7 +5,7 @@ using SecurityNet.Application.Associations.DataTransferObjects;
 namespace SecurityNet.API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/v1/[controller]")]
 public sealed class AssociationController : ControllerBase {
     private readonly IAssociationService _associationService;
     private readonly ILogger<AssociationController> _logger;
@@ -16,10 +16,15 @@ public sealed class AssociationController : ControllerBase {
     }
 
     [HttpGet]
-    public async Task<List<AssociationDto>> GetAssociations() {
-        List<AssociationDto> result = await _associationService.GetAssociations();
+    public async Task<ActionResult<List<AssociationDto>>> GetAssociations() {
+        _logger.LogInformation("Getting associations");
 
-        _logger.LogInformation("Returning associations for {count}", result.Count);
-        return result;
+        try {
+            List<AssociationDto> associations = await _associationService.GetAssociations();
+            return Ok(associations);
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Failed to get associations");
+            return StatusCode(500, "Internal server error");
+        }
     }
 }
