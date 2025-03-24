@@ -27,4 +27,24 @@ public sealed class AssociationController : ControllerBase {
             return StatusCode(500, "Internal server error");
         }
     }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<AssociationDto>> GetAssociation(int id) {
+        _logger.LogInformation("Getting association with Id {id}", id);
+
+        if (id < 1) {
+            return BadRequest("Invalid id");
+        }
+
+        try {
+            AssociationDto? association = await _associationService.GetAssociation(id);
+            if (association is not null) return Ok(association);
+            
+            _logger.LogInformation("Association not found");
+            return NotFound();
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Failed to get association with Id {id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
