@@ -12,6 +12,7 @@ public static class Program {
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddApplication();
 
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped(typeof(CancellationToken), serviceProvider => {
             IHttpContextAccessor httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
             return httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;
