@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SecurityNet.Application.Associations.DataTransferObjects;
-using SecurityNet.Infrastructure;
+using SecurityNet.Domain.Entities;
 using SecurityNet.Infrastructure.DbContexts;
 
 namespace SecurityNet.Application.Associations;

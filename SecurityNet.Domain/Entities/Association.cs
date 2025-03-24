@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace SecurityNet.Infrastructure;
+﻿namespace SecurityNet.Domain.Entities;
 
 public partial class Association
 {
