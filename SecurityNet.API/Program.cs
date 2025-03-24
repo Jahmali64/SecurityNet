@@ -1,27 +1,36 @@
+using SecurityNet.Application;
+using SecurityNet.Infrastructure;
+
 namespace SecurityNet.API;
 
-public class Program {
+public static class Program {
     public static void Main(string[] args) {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Add services to the container.
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddApplication();
 
-        var app = builder.Build();
+        builder.Services.AddScoped(typeof(CancellationToken), serviceProvider => {
+            IHttpContextAccessor httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+            return httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;
+        });
+        builder.Services.AddCors(options => {
+            options.AddPolicy(name: "DevelopmentCorsPolicy", configurePolicy: policy => policy.AllowAnyOrigin());
+        });
 
-        // Configure the HTTP request pipeline.
+        WebApplication app = builder.Build();
+
         if (app.Environment.IsDevelopment()) {
             app.MapOpenApi();
+            app.UseCors("DevelopmentCorsPolicy");
         }
 
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-
-
+        
         app.MapControllers();
 
         app.Run();

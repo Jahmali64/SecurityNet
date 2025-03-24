@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SecurityNet.Infrastructure\SecurityNet.Infrastructure.csproj" />
+      <ProjectReference Include="..\SecurityNet.Application\SecurityNet.Application.csproj" />
     </ItemGroup>
 
 </Project>
