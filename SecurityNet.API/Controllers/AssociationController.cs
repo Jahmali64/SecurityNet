@@ -16,6 +16,8 @@ public sealed class AssociationController : ControllerBase {
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(List<AssociationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<AssociationDto>>> GetAssociations() {
         _logger.LogInformation("Getting associations");
 
@@ -23,12 +25,16 @@ public sealed class AssociationController : ControllerBase {
             List<AssociationDto> associations = await _associationService.GetAssociations();
             return Ok(associations);
         } catch (Exception ex) {
-            _logger.LogError(ex, "Failed to get associations");
+            _logger.LogError(ex, "Failed to get associations. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");
         }
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(AssociationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AssociationDto>> GetAssociation(int id) {
         _logger.LogInformation("Getting association with Id {id}", id);
 
@@ -43,12 +49,15 @@ public sealed class AssociationController : ControllerBase {
             _logger.LogInformation("Association not found");
             return NotFound();
         } catch (Exception ex) {
-            _logger.LogError(ex, "Failed to get association with Id {id}", id);
+            _logger.LogError(ex, "Failed to get association with Id {id}. Message: {message}", id, ex.Message);
             return StatusCode(500, "Internal server error");
         }
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(AssociationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AssociationDto>> PostAssociation([FromBody] CreateAssociationDto? request) {
         _logger.LogInformation("Creating association");
 
@@ -66,12 +75,16 @@ public sealed class AssociationController : ControllerBase {
             AssociationDto association = await _associationService.AddAssociation(request);
             return CreatedAtAction(nameof(GetAssociation), new { id = association.AssociationId }, association);
         } catch (Exception ex) {
-            _logger.LogError(ex, "Failed to add association");
+            _logger.LogError(ex, "Failed to add association. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");
         }
     }
 
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PutAssociation(int id, [FromBody] CreateAssociationDto? request) {
         _logger.LogInformation("Updating association with Id {id}", id);
 
@@ -97,12 +110,16 @@ public sealed class AssociationController : ControllerBase {
             _logger.LogInformation("Association not found");
             return NotFound();
         } catch (Exception ex) {
-            _logger.LogError(ex, "Failed to update association");
+            _logger.LogError(ex, "Failed to update association. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");
         }
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteAssociation(int id) {
         _logger.LogInformation("Deleting association with Id {id}", id);
 
