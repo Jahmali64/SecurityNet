@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SecurityNet.Infrastructure;
 
-namespace SecurityNet.Infrastructure.Context;
+namespace SecurityNet.Infrastructure.DbContexts;
 
 public partial class SecurityNetDbContext : DbContext
 {
