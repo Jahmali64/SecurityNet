@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SecurityNet.Application.Auth;
 using SecurityNet.Application.Users.DataTransferObjects;
+using SecurityNet.Application.UserTokens.DataTransferObjects;
 
 namespace SecurityNet.API.Controllers;
 
@@ -32,17 +33,35 @@ public sealed class AuthController : ControllerBase {
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<string?>> Login([FromBody] LoginUserDto request) {
+    public async Task<ActionResult<UserTokenDto?>> Login([FromBody] LoginUserDto request) {
         _logger.LogInformation("Attempting to log in user: {userName}", request.UserName);
 
         try {
-            string? token = await _authService.Login(request);
-            if (token is not null) return Ok(token);
+            UserTokenDto? userTokens = await _authService.Login(request);
+            if (userTokens is not null) return Ok(userTokens);
             
             _logger.LogWarning("UserName: {userName} or Password: {password} not found", request.UserName, request.Password);
             return BadRequest("Invalid username or password");
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to log in user. Message: {message}", ex.Message);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpPost("refresh-token")]
+    public async Task<ActionResult<UserTokenDto>> RefreshToken(RequestRefreshTokenDto request) {
+        _logger.LogInformation("Attempting to refresh token");
+        
+        if (request.UserId < 1) return BadRequest("Invalid userId");
+        if (string.IsNullOrWhiteSpace(request.RefreshToken)) return BadRequest("Invalid refresh token");
+
+        try {
+            UserTokenDto? userTokens = await _authService.RefreshTokens(request);
+            if (userTokens is not null && !string.IsNullOrWhiteSpace(userTokens.AccessToken) && !string.IsNullOrWhiteSpace(userTokens.RefreshToken)) return Ok(userTokens);
+            _logger.LogWarning("Token {refreshToken} not found", request.RefreshToken);
+            return Unauthorized("Invalid credentials");
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Failed to refresh token. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");
         }
     }

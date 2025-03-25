@@ -6,20 +6,25 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SecurityNet.Application.Users;
 using SecurityNet.Application.Users.DataTransferObjects;
+using SecurityNet.Application.UserTokens;
+using SecurityNet.Application.UserTokens.DataTransferObjects;
 
 namespace SecurityNet.Application.Auth;
 
 public interface IAuthService {
     Task<UserDto?> Register(CreateUserDto request);
-    Task<string?> Login(LoginUserDto request);
+    Task<UserTokenDto?> Login(LoginUserDto request);
+    Task<UserTokenDto?> RefreshTokens(RequestRefreshTokenDto request);
 }
 
 public sealed class AuthService : IAuthService {
     private readonly IUserService _userService;
+    private readonly IUserTokenService _userTokenService;
     private readonly IConfiguration _configuration;
     
-    public AuthService(IUserService userService, IConfiguration configuration) {
+    public AuthService(IUserService userService, IUserTokenService userTokenService, IConfiguration configuration) {
         _userService = userService;
+        _userTokenService = userTokenService;
         _configuration = configuration;
     }
 
@@ -31,11 +36,16 @@ public sealed class AuthService : IAuthService {
         return await _userService.AddUser(request);
     }
     
-    public async Task<string?> Login(LoginUserDto request) {
+    public async Task<UserTokenDto?> Login(LoginUserDto request) {
         UserDto? user = await _userService.GetUserByUserName(request.UserName);
         
         if (user is null) return null;
-        return new PasswordHasher<UserDto>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ? null : CreateToken(user);
+        return new PasswordHasher<UserDto>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ? null : await GenerateUserTokens(user);
+    }
+
+    public async Task<UserTokenDto?> RefreshTokens(RequestRefreshTokenDto request) {
+        UserDto? user = await ValidateRefreshToken(request.UserId, request.RefreshToken);
+        return user is null ? null : await GenerateUserTokens(user);
     }
     
     private string CreateToken(UserDto user) {
@@ -67,4 +77,13 @@ public sealed class AuthService : IAuthService {
 
         return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
     }
+
+    private async Task<UserDto?> ValidateRefreshToken(int userId, string refreshToken) {
+        UserDto? user = await _userService.GetUserByUserId(userId);
+        
+        if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpirationDate <= DateTime.UtcNow) return null;
+        return user;
+    }
+    
+    private async Task<UserTokenDto> GenerateUserTokens(UserDto user) => new(CreateToken(user), await _userTokenService.AddUserToken(user.UserId));
 }

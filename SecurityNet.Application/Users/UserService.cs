@@ -7,9 +7,11 @@ namespace SecurityNet.Application.Users;
 
 public interface IUserService {
     Task<List<UserDto>> GetUsers();
+    Task<UserDto?> GetUserByUserId(int userId);
     Task<UserDto?> GetUserByUserName(string userName);
     Task<UserDto> AddUser(CreateUserDto request);
     Task<bool> UserNameExists(string userName);
+    Task<bool> UserIdExists(int userId);
 }
 
 public sealed class UserService : IUserService {
@@ -32,8 +34,25 @@ public sealed class UserService : IUserService {
                 PasswordHash = u.PasswordHash ?? string.Empty,
                 PhoneNumber = u.PhoneNumber ?? string.Empty,
                 Active = u.Active,
-                Roles = u.UserRoles.Where(ur => ur.UserId == u.UserId).Select(ur => ur.Role.Name ?? "").ToList(),
+                Roles = u.UserRoles.Where(ur => ur.UserId == u.UserId).Select(ur => ur.Role.Name ?? "").ToList()
             }).ToListAsync(_cancellationToken);
+    }
+    
+    public async Task<UserDto?> GetUserByUserId(int userId) {
+        await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
+
+        return await securityNetDbContext.Users.Where(u => u.UserId == userId && !u.Trash)
+            .Select(u => new UserDto {
+                UserId = u.UserId,
+                UserName = u.UserName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                PasswordHash = u.PasswordHash ?? string.Empty,
+                PhoneNumber = u.PhoneNumber ?? string.Empty,
+                Active = u.Active,
+                Roles = u.UserRoles.Where(ur => ur.UserId == u.UserId).Select(ur => ur.Role.Name ?? "").ToList(),
+                RefreshToken = u.UserTokens.Where(ut => ut.UserId == u.UserId).Select(ut => ut.RefreshToken).FirstOrDefault(),
+                RefreshTokenExpirationDate = u.UserTokens.Where(ut => ut.UserId == u.UserId).Select(ut => ut.RefreshTokenExpirationDate).FirstOrDefault()
+            }).FirstOrDefaultAsync(_cancellationToken);
     }
     
     public async Task<UserDto?> GetUserByUserName(string userName) {
@@ -48,6 +67,8 @@ public sealed class UserService : IUserService {
                 PhoneNumber = u.PhoneNumber ?? string.Empty,
                 Active = u.Active,
                 Roles = u.UserRoles.Where(ur => ur.UserId == u.UserId).Select(ur => ur.Role.Name ?? "").ToList(),
+                RefreshToken = u.UserTokens.Where(ut => ut.UserId == u.UserId).Select(ut => ut.RefreshToken).FirstOrDefault(),
+                RefreshTokenExpirationDate = u.UserTokens.Where(ut => ut.UserId == u.UserId).Select(ut => ut.RefreshTokenExpirationDate).FirstOrDefault()
             }).FirstOrDefaultAsync(_cancellationToken);
     }
 
@@ -81,5 +102,11 @@ public sealed class UserService : IUserService {
         await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
         
         return await securityNetDbContext.Users.AnyAsync(u => u.UserName == userName, _cancellationToken);
+    }
+    
+    public async Task<bool> UserIdExists(int userId) {
+        await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
+        
+        return await securityNetDbContext.Users.AnyAsync(u => u.UserId == userId, _cancellationToken);
     }
 }
