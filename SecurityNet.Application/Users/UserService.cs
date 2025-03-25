@@ -7,7 +7,6 @@ namespace SecurityNet.Application.Users;
 
 public interface IUserService {
     Task<List<UserDto>> GetUsers();
-    Task<UserDto?> GetUserByUserId(int userId);
     Task<UserDto?> GetUserByUserName(string userName);
     Task<UserDto> AddUser(CreateUserDto request);
     Task<bool> UserNameExists(string userName);
@@ -34,20 +33,6 @@ public sealed class UserService : IUserService {
                 PhoneNumber = u.PhoneNumber ?? string.Empty,
                 Active = u.Active,
             }).ToListAsync(_cancellationToken);
-    }
-    
-    public async Task<UserDto?> GetUserByUserId(int userId) {
-        await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
-
-        return await securityNetDbContext.Users.Where(u => u.UserId == userId && !u.Trash)
-            .Select(u => new UserDto {
-                UserId = u.UserId,
-                UserName = u.UserName ?? string.Empty,
-                Email = u.Email ?? string.Empty,
-                PasswordHash = u.PasswordHash ?? string.Empty,
-                PhoneNumber = u.PhoneNumber ?? string.Empty,
-                Active = u.Active,
-            }).FirstOrDefaultAsync(_cancellationToken);
     }
     
     public async Task<UserDto?> GetUserByUserName(string userName) {
