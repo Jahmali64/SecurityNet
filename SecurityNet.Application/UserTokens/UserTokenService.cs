@@ -9,6 +9,7 @@ namespace SecurityNet.Application.UserTokens;
 
 public interface IUserTokenService {
     Task<string> AddUserToken(int userId);
+    Task<int> InvalidateRefreshToken(int userId);
 }
 
 public sealed class UserTokenService : IUserTokenService {
@@ -49,6 +50,19 @@ public sealed class UserTokenService : IUserTokenService {
         
         await securityNetDbContext.SaveChangesAsync(_cancellationToken);
         return userToken.RefreshToken;
+    }
+    
+    public async Task<int> InvalidateRefreshToken(int userId) {
+        if (!await _userService.UserIdExists(userId)) {
+            throw new ArgumentException("UserId does not exist");
+        }
+
+        await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
+
+        return await securityNetDbContext.UserTokens.Where(ut => ut.UserId == userId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(ut => ut.RefreshToken, (string?)null)
+                .SetProperty(ut => ut.RefreshTokenExpirationDate, DateTime.UtcNow), _cancellationToken);
     }
 
     private static string CreateRefreshToken() {

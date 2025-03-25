@@ -14,6 +14,7 @@ namespace SecurityNet.Application.Auth;
 public interface IAuthService {
     Task<UserDto?> Register(CreateUserDto request);
     Task<UserTokenDto?> Login(LoginUserDto request);
+    Task<int?> Logout(string refreshToken);
     Task<UserTokenDto?> RefreshTokens(string refreshToken);
 }
 
@@ -41,6 +42,11 @@ public sealed class AuthService : IAuthService {
         
         if (user is null) return null;
         return new PasswordHasher<UserDto>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ? null : await GenerateUserTokens(user);
+    }
+
+    public async Task<int?> Logout(string refreshToken) {
+        UserDto? user = await _userService.GetUserByRefreshToken(refreshToken);
+        return user is null ? null : await _userTokenService.InvalidateRefreshToken(user.UserId);
     }
 
     public async Task<UserTokenDto?> RefreshTokens(string refreshToken) {

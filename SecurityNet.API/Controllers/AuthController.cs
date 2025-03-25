@@ -58,6 +58,31 @@ public sealed class AuthController : ControllerBase {
             return StatusCode(500, "Internal server error");
         }
     }
+    
+    [HttpPost("logout")]
+    public async Task<ActionResult<string?>> Logout() {
+        _logger.LogInformation("Attempting to log out user");
+        
+        if (!Request.Cookies.TryGetValue("refreshToken", out string? refreshToken)) {
+            _logger.LogWarning("No refresh token found");
+            return Unauthorized("No refresh token found");
+        }
+
+        try {
+            int? result = await _authService.Logout(refreshToken);
+            if (!result.HasValue) {
+                _logger.LogWarning("User not found");
+                return Unauthorized("User not found");
+            }
+            
+            Response.Cookies.Delete("refreshToken");
+            _logger.LogInformation("User logged out successfully");
+            return Ok("User logged out successfully");
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Failed to log out user. Message: {message}", ex.Message);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 
     [HttpPost("refresh-token")]
     public async Task<ActionResult<UserTokenDto>> RefreshToken() {
