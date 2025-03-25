@@ -10,10 +10,12 @@ namespace SecurityNet.API.Controllers;
 public sealed class AuthController : ControllerBase {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IConfiguration _configuration;
     
-    public AuthController(IAuthService authService, ILogger<AuthController> logger) {
+    public AuthController(IAuthService authService, ILogger<AuthController> logger, IConfiguration configuration) {
         _authService = authService;
         _logger = logger;
+        _configuration = configuration;
     }
     
     [HttpPost("register")]
@@ -33,15 +35,24 @@ public sealed class AuthController : ControllerBase {
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<UserTokenDto?>> Login([FromBody] LoginUserDto request) {
+    public async Task<ActionResult<string?>> Login([FromBody] LoginUserDto request) {
         _logger.LogInformation("Attempting to log in user: {userName}", request.UserName);
 
         try {
             UserTokenDto? userTokens = await _authService.Login(request);
-            if (userTokens is not null) return Ok(userTokens);
-            
-            _logger.LogWarning("UserName: {userName} not found", request.UserName);
-            return BadRequest("Invalid username or password");
+            if (userTokens is null) {
+                _logger.LogWarning("UserName: {userName} not found", request.UserName);
+                return BadRequest("Invalid username or password");
+            }
+
+            var cookieOptions = new CookieOptions {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenExpirationInDays"))
+            };
+            Response.Cookies.Append("refreshToken", userTokens.RefreshToken, cookieOptions);
+            return Ok(userTokens.AccessToken);
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to log in user. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");
@@ -49,17 +60,30 @@ public sealed class AuthController : ControllerBase {
     }
 
     [HttpPost("refresh-token")]
-    public async Task<ActionResult<UserTokenDto>> RefreshToken([FromBody] RequestRefreshTokenDto request) {
+    public async Task<ActionResult<UserTokenDto>> RefreshToken() {
         _logger.LogInformation("Attempting to refresh token");
-        
-        if (request.UserId < 1) return BadRequest("Invalid userId");
-        if (string.IsNullOrWhiteSpace(request.RefreshToken)) return BadRequest("Invalid refresh token");
+
+        if (!Request.Cookies.TryGetValue("refreshToken", out string? refreshToken)) {
+            _logger.LogWarning("No refresh token found");
+            return Unauthorized("No refresh token found");
+        }
 
         try {
-            UserTokenDto? userTokens = await _authService.RefreshTokens(request);
-            if (userTokens is not null && !string.IsNullOrWhiteSpace(userTokens.AccessToken) && !string.IsNullOrWhiteSpace(userTokens.RefreshToken)) return Ok(userTokens);
-            _logger.LogWarning("Token {refreshToken} not found", request.RefreshToken);
-            return Unauthorized("Invalid credentials");
+            UserTokenDto? userTokens = await _authService.RefreshTokens(refreshToken);
+            if (userTokens is null || string.IsNullOrWhiteSpace(userTokens.AccessToken)) {
+                _logger.LogWarning("Token {refreshToken} not found", refreshToken);
+                return Unauthorized("Invalid credentials");
+            }
+
+            var cookieOptions = new CookieOptions {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenExpirationInDays"))
+            };
+            
+            Response.Cookies.Append("refreshToken", userTokens.RefreshToken, cookieOptions);
+            return Ok(userTokens.AccessToken);
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to refresh token. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");

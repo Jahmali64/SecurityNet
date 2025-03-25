@@ -40,6 +40,7 @@ public static class Program {
                 ValidateIssuerSigningKey = true
             };
         });
+        builder.Services.AddAuthorization();
 
         WebApplication app = builder.Build();
 
@@ -51,6 +52,7 @@ public static class Program {
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
         
         app.MapControllers();

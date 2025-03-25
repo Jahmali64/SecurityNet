@@ -14,7 +14,7 @@ namespace SecurityNet.Application.Auth;
 public interface IAuthService {
     Task<UserDto?> Register(CreateUserDto request);
     Task<UserTokenDto?> Login(LoginUserDto request);
-    Task<UserTokenDto?> RefreshTokens(RequestRefreshTokenDto request);
+    Task<UserTokenDto?> RefreshTokens(string refreshToken);
 }
 
 public sealed class AuthService : IAuthService {
@@ -43,8 +43,8 @@ public sealed class AuthService : IAuthService {
         return new PasswordHasher<UserDto>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ? null : await GenerateUserTokens(user);
     }
 
-    public async Task<UserTokenDto?> RefreshTokens(RequestRefreshTokenDto request) {
-        UserDto? user = await ValidateRefreshToken(request.UserId, request.RefreshToken);
+    public async Task<UserTokenDto?> RefreshTokens(string refreshToken) {
+        UserDto? user = await ValidateRefreshToken(refreshToken);
         return user is null ? null : await GenerateUserTokens(user);
     }
     
@@ -78,8 +78,8 @@ public sealed class AuthService : IAuthService {
         return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
     }
 
-    private async Task<UserDto?> ValidateRefreshToken(int userId, string refreshToken) {
-        UserDto? user = await _userService.GetUserByUserId(userId);
+    private async Task<UserDto?> ValidateRefreshToken(string refreshToken) {
+        UserDto? user = await _userService.GetUserByRefreshToken(refreshToken);
         
         if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpirationDate <= DateTime.UtcNow) return null;
         return user;
