@@ -16,7 +16,7 @@ public class UserController : ControllerBase {
         _logger = logger;
     }
 
-    [Authorize]
+    [Authorize(Roles = "Super Admin")]
     [HttpGet]
     public async Task<ActionResult<List<UserDto>>> GetUsers() {
         _logger.LogInformation("Getting users");

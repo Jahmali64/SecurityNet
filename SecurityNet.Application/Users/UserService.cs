@@ -32,6 +32,7 @@ public sealed class UserService : IUserService {
                 PasswordHash = u.PasswordHash ?? string.Empty,
                 PhoneNumber = u.PhoneNumber ?? string.Empty,
                 Active = u.Active,
+                Roles = u.UserRoles.Where(ur => ur.UserId == u.UserId).Select(ur => ur.Role.Name ?? "").ToList(),
             }).ToListAsync(_cancellationToken);
     }
     
@@ -46,6 +47,7 @@ public sealed class UserService : IUserService {
                 PasswordHash = u.PasswordHash ?? string.Empty,
                 PhoneNumber = u.PhoneNumber ?? string.Empty,
                 Active = u.Active,
+                Roles = u.UserRoles.Where(ur => ur.UserId == u.UserId).Select(ur => ur.Role.Name ?? "").ToList(),
             }).FirstOrDefaultAsync(_cancellationToken);
     }
 

@@ -52,7 +52,8 @@ public sealed class AuthService : IAuthService {
         
         IEnumerable<Claim> claims = [
             new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new(ClaimTypes.Name, user.UserName)
+            new(ClaimTypes.Name, user.UserName),
+            new(ClaimTypes.Role, string.Join(",", user.Roles)),
         ];
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
