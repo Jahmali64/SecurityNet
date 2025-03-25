@@ -1,3 +1,6 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using SecurityNet.Application;
 using SecurityNet.Infrastructure;
@@ -20,6 +23,22 @@ public static class Program {
         });
         builder.Services.AddCors(options => {
             options.AddPolicy(name: "DevelopmentCorsPolicy", configurePolicy: policy => policy.AllowAnyOrigin());
+        });
+
+        builder.Services.AddAuthentication(options => {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options => {
+            options.TokenValidationParameters = new TokenValidationParameters {
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                ValidateLifetime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new NullReferenceException("SecurityKey is missing"))),
+                ValidateIssuerSigningKey = true
+            };
         });
 
         WebApplication app = builder.Build();
