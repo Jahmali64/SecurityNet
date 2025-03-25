@@ -40,7 +40,7 @@ public sealed class AuthController : ControllerBase {
             UserTokenDto? userTokens = await _authService.Login(request);
             if (userTokens is not null) return Ok(userTokens);
             
-            _logger.LogWarning("UserName: {userName} or Password: {password} not found", request.UserName, request.Password);
+            _logger.LogWarning("UserName: {userName} not found", request.UserName);
             return BadRequest("Invalid username or password");
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to log in user. Message: {message}", ex.Message);
@@ -49,7 +49,7 @@ public sealed class AuthController : ControllerBase {
     }
 
     [HttpPost("refresh-token")]
-    public async Task<ActionResult<UserTokenDto>> RefreshToken(RequestRefreshTokenDto request) {
+    public async Task<ActionResult<UserTokenDto>> RefreshToken([FromBody] RequestRefreshTokenDto request) {
         _logger.LogInformation("Attempting to refresh token");
         
         if (request.UserId < 1) return BadRequest("Invalid userId");
