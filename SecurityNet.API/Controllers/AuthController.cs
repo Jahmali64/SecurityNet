@@ -4,30 +4,39 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using SecurityNet.API.TestModels;
+using SecurityNet.Application.Auth;
+using SecurityNet.Application.Users;
+using SecurityNet.Application.Users.DataTransferObjects;
 
 namespace SecurityNet.API.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
 public sealed class AuthController : ControllerBase {
-    private static readonly User s_user = new();
+    private readonly IAuthService _authService;
+    private readonly IUserService _userService;
     private readonly ILogger<AuthController> _logger;
     private readonly IConfiguration _configuration;
     
-    public AuthController(ILogger<AuthController> logger, IConfiguration configuration) {
+    public AuthController(IAuthService authService, IUserService userService, ILogger<AuthController> logger, IConfiguration configuration) {
+        _authService = authService;
+        _userService = userService;
         _logger = logger;
         _configuration = configuration;
     }
     
     [HttpPost("register")]
-    public ActionResult<User> Register([FromBody] UserDto request) {
-        string hashedPassword = new PasswordHasher<User>().HashPassword(s_user, request.Password);
+    public async Task<ActionResult<UserDto>> Register([FromBody] CreateUserDto request) {
+        _logger.LogInformation("Registering user: {userName}", request.UserName);
+        string hashedPassword = new PasswordHasher<CreateUserDto>().HashPassword(request, request.Password);
+        request.Password = hashedPassword;
 
         try {
-            s_user.Username = request.Username;
-            s_user.PasswordHash = hashedPassword;
-            return Ok(s_user);
+            UserDto? user = await _authService.Register(request);
+            if (user is not null) return Ok(user);
+            
+            _logger.LogWarning("User {userName} could not be registered", request.UserName);
+            return BadRequest();
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to create user. Message: {message}", ex.Message);
             return StatusCode(500, "Internal server error");
@@ -35,23 +44,26 @@ public sealed class AuthController : ControllerBase {
     }
 
     [HttpPost("login")]
-    public ActionResult<string> Login([FromBody] UserDto request) {
-        if (s_user.Username != request.Username) {
-            _logger.LogWarning("Username {username} not match", request.Username);
+    public async Task<ActionResult<string?>> Login([FromBody] LoginUserDto request) {
+        _logger.LogInformation("Logging user: {userName}", request.UserName);
+        UserDto? user = await _userService.GetUserByUserName(request.UserName);
+        
+        if (user is null) {
+            _logger.LogWarning("Username {username} not match", request.UserName);
             return Unauthorized();
         }
 
-        if (new PasswordHasher<User>().VerifyHashedPassword(s_user, s_user.PasswordHash, request.Password) == PasswordVerificationResult.Failed) {
+        if (new PasswordHasher<UserDto>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed) {
             _logger.LogWarning("Password {password} not match", request.Password);
             return Unauthorized();
         }
 
-        string token = CreateToken(s_user);
+        string token = CreateToken(user);
         return Ok(token);
     }
 
-    private string CreateToken(User user) {
-        IEnumerable<Claim> claims = [ new(ClaimTypes.Name, user.Username) ];
+    private string CreateToken(UserDto user) {
+        IEnumerable<Claim> claims = [ new(ClaimTypes.Name, user.UserName) ];
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Jwt:Key")!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
         var tokenDescriptor = new JwtSecurityToken(

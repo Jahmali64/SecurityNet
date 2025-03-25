@@ -25,7 +25,7 @@ public sealed class AssociationService : IAssociationService {
     public async Task<List<AssociationDto>> GetAssociations() {
         await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
 
-        return await securityNetDbContext.Associations.Where(a => a.Active && !a.Trash).Select(a => new AssociationDto {
+        return await securityNetDbContext.Associations.Where(a => !a.Trash).Select(a => new AssociationDto {
             AssociationId = a.AssociationId,
             Name = a.Name ?? string.Empty,
             Website = a.Website ?? string.Empty,
@@ -36,7 +36,7 @@ public sealed class AssociationService : IAssociationService {
     public async Task<AssociationDto?> GetAssociation(int associationId) {
         await using SecurityNetDbContext securityNetDbContext = await _securityNetDbContextFactory.CreateDbContextAsync(_cancellationToken);
 
-        return await securityNetDbContext.Associations.Where(a => a.AssociationId == associationId && a.Active && !a.Trash).Select(a => new AssociationDto {
+        return await securityNetDbContext.Associations.Where(a => a.AssociationId == associationId && !a.Trash).Select(a => new AssociationDto {
             AssociationId = a.AssociationId,
             Name = a.Name ?? string.Empty,
             Website = a.Website ?? string.Empty,
