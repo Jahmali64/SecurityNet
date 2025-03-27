@@ -1,4 +1,4 @@
-﻿namespace SecurityNet.Application.UserTokens.DataTransferObjects;
+﻿namespace SecurityNet.Application.Services.UserTokens.DataTransferObjects;
 
 public sealed class RequestRefreshTokenDto {
     public int UserId { get; set; }

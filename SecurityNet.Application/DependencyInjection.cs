@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SecurityNet.Application.Associations;
-using SecurityNet.Application.Auth;
-using SecurityNet.Application.Users;
-using SecurityNet.Application.UserTokens;
+using SecurityNet.Application.Services.Associations;
+using SecurityNet.Application.Services.Auth;
+using SecurityNet.Application.Services.Users;
+using SecurityNet.Application.Services.UserTokens;
 
 namespace SecurityNet.Application;
 

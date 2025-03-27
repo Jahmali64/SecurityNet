@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SecurityNet.Application.Auth;
-using SecurityNet.Application.Users.DataTransferObjects;
-using SecurityNet.Application.UserTokens.DataTransferObjects;
+using SecurityNet.Application.Services.Auth;
+using SecurityNet.Application.Services.Users.DataTransferObjects;
+using SecurityNet.Application.Services.UserTokens.DataTransferObjects;
 
 namespace SecurityNet.API.Controllers;
 

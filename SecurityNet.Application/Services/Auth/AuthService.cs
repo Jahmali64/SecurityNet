@@ -4,12 +4,12 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using SecurityNet.Application.Users;
-using SecurityNet.Application.Users.DataTransferObjects;
-using SecurityNet.Application.UserTokens;
-using SecurityNet.Application.UserTokens.DataTransferObjects;
+using SecurityNet.Application.Services.Users;
+using SecurityNet.Application.Services.Users.DataTransferObjects;
+using SecurityNet.Application.Services.UserTokens;
+using SecurityNet.Application.Services.UserTokens.DataTransferObjects;
 
-namespace SecurityNet.Application.Auth;
+namespace SecurityNet.Application.Services.Auth;
 
 public interface IAuthService {
     Task<UserDto?> Register(CreateUserDto request);

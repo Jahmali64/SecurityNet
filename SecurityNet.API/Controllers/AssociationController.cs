@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SecurityNet.Application.Associations;
-using SecurityNet.Application.Associations.DataTransferObjects;
+using SecurityNet.Application.Services.Associations;
+using SecurityNet.Application.Services.Associations.DataTransferObjects;
 
 namespace SecurityNet.API.Controllers;
 

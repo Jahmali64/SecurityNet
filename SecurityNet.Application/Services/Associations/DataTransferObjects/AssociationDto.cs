@@ -1,4 +1,4 @@
-﻿namespace SecurityNet.Application.Associations.DataTransferObjects;
+﻿namespace SecurityNet.Application.Services.Associations.DataTransferObjects;
 
 public sealed class AssociationDto {
     public int AssociationId { get; set; }

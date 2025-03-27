@@ -1,11 +1,11 @@
 ﻿using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using SecurityNet.Application.Users;
+using SecurityNet.Application.Services.Users;
 using SecurityNet.Domain.Entities;
 using SecurityNet.Infrastructure.DbContexts;
 
-namespace SecurityNet.Application.UserTokens;
+namespace SecurityNet.Application.Services.UserTokens;
 
 public interface IUserTokenService {
     Task<string> AddUserToken(int userId);

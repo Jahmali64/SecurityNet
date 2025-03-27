@@ -1,4 +1,4 @@
-﻿namespace SecurityNet.Application.UserTokens.DataTransferObjects;
+﻿namespace SecurityNet.Application.Services.UserTokens.DataTransferObjects;
 
 public sealed class UserTokenDto(string accessToken, string refreshToken) {
     public string AccessToken { get; set; } = accessToken;

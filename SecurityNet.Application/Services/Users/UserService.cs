@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SecurityNet.Application.Users.DataTransferObjects;
+using SecurityNet.Application.Services.Users.DataTransferObjects;
 using SecurityNet.Domain.Entities;
 using SecurityNet.Infrastructure.DbContexts;
 
-namespace SecurityNet.Application.Users;
+namespace SecurityNet.Application.Services.Users;
 
 public interface IUserService {
     Task<List<UserDto>> GetUsers();

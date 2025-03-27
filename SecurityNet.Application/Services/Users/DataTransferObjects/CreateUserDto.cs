@@ -1,4 +1,4 @@
-﻿namespace SecurityNet.Application.Users.DataTransferObjects;
+﻿namespace SecurityNet.Application.Services.Users.DataTransferObjects;
 
 public class CreateUserDto {
     public string UserName { get; set; } = string.Empty;

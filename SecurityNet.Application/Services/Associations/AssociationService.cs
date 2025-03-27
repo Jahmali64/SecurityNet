@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SecurityNet.Application.Associations.DataTransferObjects;
+using SecurityNet.Application.Services.Associations.DataTransferObjects;
 using SecurityNet.Domain.Entities;
 using SecurityNet.Infrastructure.DbContexts;
 
-namespace SecurityNet.Application.Associations;
+namespace SecurityNet.Application.Services.Associations;
 
 public interface IAssociationService {
     Task<List<AssociationDto>> GetAssociations();

@@ -1,4 +1,4 @@
-﻿namespace SecurityNet.Application.Users.DataTransferObjects;
+﻿namespace SecurityNet.Application.Services.Users.DataTransferObjects;
 
 public sealed class UserDto {
     public int UserId { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace SecurityNet.Application.Associations.DataTransferObjects;
+﻿namespace SecurityNet.Application.Services.Associations.DataTransferObjects;
 
 public sealed class CreateAssociationDto {
     public string Name { get; set; } = string.Empty;
