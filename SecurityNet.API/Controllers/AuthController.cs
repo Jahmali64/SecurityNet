@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SecurityNet.Application.Services.Auth;
 using SecurityNet.Application.Services.Users.DataTransferObjects;
 using SecurityNet.Application.Services.UserTokens.DataTransferObjects;
+using SecurityNet.Shared.Models;
 
 namespace SecurityNet.API.Controllers;
 
@@ -10,12 +12,12 @@ namespace SecurityNet.API.Controllers;
 public sealed class AuthController : ControllerBase {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthController> _logger;
-    private readonly IConfiguration _configuration;
+    private readonly JwtSettings _jwtSettings;
     
-    public AuthController(IAuthService authService, ILogger<AuthController> logger, IConfiguration configuration) {
+    public AuthController(IAuthService authService, ILogger<AuthController> logger, IOptions<JwtSettings> jwtSettings) {
         _authService = authService;
         _logger = logger;
-        _configuration = configuration;
+        _jwtSettings = jwtSettings.Value;
     }
     
     [HttpPost("register")]
@@ -49,7 +51,7 @@ public sealed class AuthController : ControllerBase {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenExpirationInDays"))
+                Expires = DateTimeOffset.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays)
             };
             Response.Cookies.Append("refreshToken", userTokens.RefreshToken, cookieOptions);
             return Ok(userTokens.AccessToken);
@@ -104,7 +106,7 @@ public sealed class AuthController : ControllerBase {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenExpirationInDays"))
+                Expires = DateTimeOffset.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays)
             };
             
             Response.Cookies.Append("refreshToken", userTokens.RefreshToken, cookieOptions);

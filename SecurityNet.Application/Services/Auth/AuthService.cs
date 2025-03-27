@@ -2,12 +2,13 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SecurityNet.Application.Services.Users;
 using SecurityNet.Application.Services.Users.DataTransferObjects;
 using SecurityNet.Application.Services.UserTokens;
 using SecurityNet.Application.Services.UserTokens.DataTransferObjects;
+using SecurityNet.Shared.Models;
 
 namespace SecurityNet.Application.Services.Auth;
 
@@ -21,12 +22,12 @@ public interface IAuthService {
 public sealed class AuthService : IAuthService {
     private readonly IUserService _userService;
     private readonly IUserTokenService _userTokenService;
-    private readonly IConfiguration _configuration;
+    private readonly JwtSettings _jwtSettings;
     
-    public AuthService(IUserService userService, IUserTokenService userTokenService, IConfiguration configuration) {
+    public AuthService(IUserService userService, IUserTokenService userTokenService, IOptions<JwtSettings> jwtSettings) {
         _userService = userService;
         _userTokenService = userTokenService;
-        _configuration = configuration;
+        _jwtSettings = jwtSettings.Value;
     }
 
     public async Task<UserDto?> Register(CreateUserDto request) {
@@ -55,29 +56,18 @@ public sealed class AuthService : IAuthService {
     }
     
     private string CreateToken(UserDto user) {
-        string? securityKey = _configuration["Jwt:Key"];
-        if (string.IsNullOrWhiteSpace(securityKey)) throw new InvalidOperationException("SecurityKey is missing");
-        
-        string? issuer = _configuration["Jwt:Issuer"];
-        if (string.IsNullOrWhiteSpace(issuer)) throw new InvalidOperationException("Issuer is missing");
-        
-        string? audience = _configuration["Jwt:Audience"];
-        if (string.IsNullOrWhiteSpace(audience)) throw new InvalidOperationException("Audience is missing");
-        
-        if (!int.TryParse(_configuration["Jwt:ExpirationInMinutes"], out int expirationInMinutes)) throw new InvalidOperationException("ExpirationInMinutes is invalid");
-        
         IEnumerable<Claim> claims = [
             new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new(ClaimTypes.Name, user.UserName),
             new(ClaimTypes.Role, string.Join(",", user.Roles)),
         ];
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
         var tokenDescriptor = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expirationInMinutes),
+                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes),
                 signingCredentials: credentials
             );
 

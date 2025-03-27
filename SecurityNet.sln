@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityNet.Domain", "Secur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityNet.Application", "SecurityNet.Application\SecurityNet.Application.csproj", "{3B1E76FB-40E7-465A-A286-1201572975EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityNet.Shared", "SecurityNet.Shared\SecurityNet.Shared.csproj", "{0AF93CFB-3E75-4CFD-A60C-6A5C9189C20E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,5 +37,9 @@ Global
 		{3B1E76FB-40E7-465A-A286-1201572975EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B1E76FB-40E7-465A-A286-1201572975EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B1E76FB-40E7-465A-A286-1201572975EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AF93CFB-3E75-4CFD-A60C-6A5C9189C20E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF93CFB-3E75-4CFD-A60C-6A5C9189C20E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF93CFB-3E75-4CFD-A60C-6A5C9189C20E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF93CFB-3E75-4CFD-A60C-6A5C9189C20E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

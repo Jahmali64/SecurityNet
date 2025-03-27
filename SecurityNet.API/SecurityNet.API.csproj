@@ -26,6 +26,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SecurityNet.Application\SecurityNet.Application.csproj" />
+      <ProjectReference Include="..\SecurityNet.Shared\SecurityNet.Shared.csproj" />
     </ItemGroup>
 
 </Project>

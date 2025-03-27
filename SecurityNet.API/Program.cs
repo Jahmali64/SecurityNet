@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using SecurityNet.Application;
 using SecurityNet.Infrastructure;
+using SecurityNet.Shared.Models;
 
 namespace SecurityNet.API;
 
@@ -11,6 +12,9 @@ public static class Program {
     public static void Main(string[] args) {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+        var jwtSettings = new JwtSettings();
+        builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
+        builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
         builder.Services.AddInfrastructure(builder.Configuration);
@@ -32,11 +36,11 @@ public static class Program {
         }).AddJwtBearer(options => {
             options.TokenValidationParameters = new TokenValidationParameters {
                 ValidateIssuer = true,
-                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidIssuer = jwtSettings.Issuer,
                 ValidateAudience = true,
-                ValidAudience = builder.Configuration["Jwt:Audience"],
+                ValidAudience = jwtSettings.Audience,
                 ValidateLifetime = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new NullReferenceException("SecurityKey is missing"))),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
                 ValidateIssuerSigningKey = true
             };
         });

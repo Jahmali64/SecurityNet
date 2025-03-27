@@ -1,9 +1,10 @@
 ﻿using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using SecurityNet.Application.Services.Users;
 using SecurityNet.Domain.Entities;
 using SecurityNet.Infrastructure.DbContexts;
+using SecurityNet.Shared.Models;
 
 namespace SecurityNet.Application.Services.UserTokens;
 
@@ -14,22 +15,18 @@ public interface IUserTokenService {
 
 public sealed class UserTokenService : IUserTokenService {
     private readonly IDbContextFactory<SecurityNetDbContext> _securityNetDbContextFactory;
-    private readonly IConfiguration _configuration;
     private readonly IUserService _userService;
+    private readonly JwtSettings _jwtSettings;
     private readonly CancellationToken _cancellationToken;
 
-    public UserTokenService(IDbContextFactory<SecurityNetDbContext> securityNetDbContextFactory, IConfiguration configuration, IUserService userService, CancellationToken cancellationToken) {
+    public UserTokenService(IDbContextFactory<SecurityNetDbContext> securityNetDbContextFactory, IUserService userService, IOptions<JwtSettings> jwtSettings, CancellationToken cancellationToken) {
         _securityNetDbContextFactory = securityNetDbContextFactory;
-        _configuration = configuration;
         _userService = userService;
+        _jwtSettings = jwtSettings.Value;
         _cancellationToken = cancellationToken;
     }
 
     public async Task<string> AddUserToken(int userId) {
-        if (!int.TryParse(_configuration["Jwt:RefreshTokenExpirationInDays"], out int refreshTokenExpirationInDays)) {
-            throw new ArgumentException("RefreshTokenExpirationInDays is invalid");
-        }
-
         if (!await _userService.UserIdExists(userId)) {
             throw new ArgumentException("UserId does not exist");
         }
@@ -45,7 +42,7 @@ public sealed class UserTokenService : IUserTokenService {
 
         if (string.IsNullOrWhiteSpace(userToken.RefreshToken) || userToken.RefreshTokenExpirationDate <= DateTime.UtcNow) {
             userToken.RefreshToken = refreshToken;
-            userToken.RefreshTokenExpirationDate = DateTime.UtcNow.AddDays(refreshTokenExpirationInDays);
+            userToken.RefreshTokenExpirationDate = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationInDays);
         }
         
         await securityNetDbContext.SaveChangesAsync(_cancellationToken);
